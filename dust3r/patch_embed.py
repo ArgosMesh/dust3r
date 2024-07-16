@@ -17,7 +17,7 @@ def get_patch_embed(patch_embed_cls, img_size, patch_size, enc_embed_dim):
 
 
 class PatchEmbedDust3R(PatchEmbed):
-    def forward(self, x, **kw):
+    def forward(self, x, true_shape):
         B, C, H, W = x.shape
         # assert H % self.patch_size[0] == 0, f"Input image height ({H}) is not a multiple of patch size ({self.patch_size[0]})."
         # assert W % self.patch_size[1] == 0, f"Input image width ({W}) is not a multiple of patch size ({self.patch_size[1]})."
