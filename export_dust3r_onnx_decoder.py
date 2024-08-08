@@ -24,7 +24,7 @@ from dust3r.utils.image import load_images, rgb
 from dust3r.utils.device import to_numpy
 from dust3r.viz import add_scene_cam, CAM_COLORS, OPENGL, pts3d_to_trimesh, cat_meshes
 from dust3r.cloud_opt import global_aligner, GlobalAlignerMode
-from dust3r.model_complete_onnx import AsymmetricCroCo3DStereo
+from dust3r.model_decoder_onnx import AsymmetricCroCo3DStereo
 import matplotlib.pyplot as pl
 
 
@@ -232,11 +232,12 @@ if __name__ == '__main__':
 
     output_dir = os.path.join(args.output_dir, chkpt_tag)
     os.makedirs(output_dir, exist_ok=True)
-    img1, img2 = imgs[0], imgs[1]
-    shape1 = torch.from_numpy(img1['true_shape']).to(args.device, non_blocking=True)
-    shape2 = torch.from_numpy(img2['true_shape']).to(args.device, non_blocking=True)
-    img1 = img1['img'].to(args.device, non_blocking=True)
-    img2 = img2['img'].to(args.device, non_blocking=True)
-    input = (img1, img2, shape1, shape2)
+    feat1 = torch.load('input/feat1.pth')
+    feat2 = torch.load('input/feat2.pth')
+    pos1 = torch.load('input/pos1.pth')
+    pos2 = torch.load('input/pos2.pth')
+    shape1 = torch.load('input/shape1.pth')
+    shape2 = torch.load('input/shape2.pth')
+    input = (feat1, feat2, pos1, pos2, shape1, shape2)
     #output = model(img1, img2, shape1, shape2)
-    torch.onnx.export(torch_model, input, os.path.join(output_dir, 'dust3r_complete_params.onnx'), export_params=True, opset_version=17, do_constant_folding=True, verbose=True)
+    torch.onnx.export(torch_model, input, os.path.join(output_dir, 'dust3r_decoder_params.onnx'), export_params=True, opset_version=17, do_constant_folding=True, verbose=True)
