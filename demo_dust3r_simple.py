@@ -44,7 +44,7 @@ def get_args_parser():
     parser.add_argument('--input_images', nargs='+', required=True, help='Input image files')
     parser.add_argument('--optim_level', choices=['coarse', 'refine', 'refine+depth'], default='refine', help='Optimization level')
     parser.add_argument('--lr1', type=float, default=0.07, help='Coarse learning rate')
-    parser.add_argument('--niter1', type=int, default=500, help='Number of coarse iterations')
+    parser.add_argument('--niter1', type=int, default=300, help='Number of coarse iterations')
     parser.add_argument('--lr2', type=float, default=0.014, help='Fine learning rate')
     parser.add_argument('--niter2', type=int, default=200, help='Number of fine iterations')
     parser.add_argument('--scenegraph_type', choices=['complete', 'swin', 'logwin', 'oneref'], default='complete', help='Scene graph type')
@@ -212,14 +212,35 @@ def main(args):
 
     output_dir = os.path.join(args.output_dir, chkpt_tag)
     os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(output_dir+"/rgb", exist_ok=True)
+    os.makedirs(output_dir+"/depth", exist_ok=True)
+    os.makedirs(output_dir+"/conf", exist_ok=True)
 
     scene, outfile, imgs = get_reconstructed_scene(
         output_dir, model, args.device, args.silent, args.image_size,
-        args.input_images, 'cosine', 300,
+        args.input_images, 'cosine', args.niter1,
         3.0, True, False, True, False, 0.05, 'complete', 1, 0
     )
 
     print(f"3D model saved to: {outfile}")
+    print(args.input_images)
+
+    # save all imgs
+    # add prefix of rgb, depth, conf
+    # imgs are ndarray
+    for i, img in enumerate(imgs):
+        if i % 3 == 0:
+            prefix = 'rgb'
+        elif i % 3 == 1:
+            prefix = 'depth'
+        else:
+            prefix = 'conf'
+        filename = os.path.splitext(os.path.basename(args.input_images[i // 3]))[0]
+        # foldername = os.path.basename(os.path.dirname(args.input_images[i // 3]))
+        # print(foldername)
+        # imgfile = os.path.join(output_dir, f'{prefix}_{i // 3}.png')
+        imgfile = os.path.join(output_dir, f'{prefix}', f'{filename}.png')
+        pl.imsave(imgfile, img)
 
 if __name__ == '__main__':
     parser = get_args_parser()
